@@ -6,8 +6,16 @@ Small library for random number generation. Includes integer random number gener
 Usage
 =====
 
-```RNG_New()``` creates a new RNG. The RNG returned will have a unique 256-bit seed. Seeds will only wrap when 2^256 RNGs have been created, which should be more than enough for most applications.
-```RNG_Destroy(rng_t *rng)``` destroys the RNG and all memory associated with it.
+-```RNG_New()``` 
+Creates a new RNG. The RNG returned will have a unique 256-bit seed. Seeds will only repeat after 2^256 RNGs have been created. 
+
+To check if the returned RNG is valid, call ```RNG_IsValid(rng_t *rng)```, which returns non-zero if the RNG is valid, or zero if the RNG is invalid.
+
+-```RNG_Destroy(rng_t *rng)``` 
+
+Destroys the RNG and all memory associated with it.
+
+
 
 Dependencies
 ============
