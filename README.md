@@ -3,8 +3,8 @@ RNG
 
 Small library for random number generation. Includes integer random number generation (essentially a glorified hash), and high-quality float/double generation that utilise all bit patterns between 0.0 and 1.0.
 
-Usage
-=====
+API
+===
 
 - ```RNG_IsValid(rng_t *rng)```
 
@@ -80,9 +80,46 @@ Set the user area of the stack relative to an offset from the top of the stack. 
 - ```RNG_GetRelative(rng_t *rng, uint32_t offset, void *data, uint32_t size)```
 - ```RNG_GetRelativeu<type>(rng_t *rng, uint32_t offset, <type> *x)```
 
-Get data from the user area of stack relative to an offset from the top of the stack. See ```RNG_SetRelative(rng_t *rng, uint32_t offset, void *data, uint32_t size)``` for details. ```data``` or ```x``` must be valid pointers to memory of ```size``` or ```sizeof(<type>)``` bytes.
+Get data from the user area of stack relative to an offset from the top of the stack. See ```RNG_SetRelative(rng_t *rng, uint32_t offset, void *data, uint32_t size)``` for details. ```data``` or ```x``` must be valid pointers to memory of ```size``` or ```sizeof(<type>)``` bytes. Returns zero on success, and non-zero on failure. In the case of failure, the data in the pointers given to the functions will remain unchanged.
 
+- ```RNG_Random<integer-type>(rng_t *rng)```
 
+Returns a random integer of the specific type. Range is [0, 2^bits - 1] for unsigned types, and [-2^(bits - 1), 2^(bits - 1) - 1] for signed types.
+
+- ```RNG_Random<float-type>(rng_t *rng)```
+
+Returns a random float in the half-open range [0.0, 1.0).
+
+Usage example
+=============
+
+```
+rng_t rng = RNG_New();
+int retval = RNG_IsValid(&rng);
+float value;
+if (retval == 0)
+    return -1.0f;
+retval = RNG_SetIDString(&rng, "TestRNGID");
+if (retval)
+    return -1.0f;
+retval = RNG_SetMaxStackSize(&rng, 64);
+if (retval)
+    return -1.0f;
+
+RNG_Pushu64(&rng, 12345); // ignore return value
+RNG_Pushu64(&rng, 123456); // ignore return value
+RNG_Pushu64(&rng, 1234567); // ignore return value
+value = RNG_Randomf32(&rng);
+RNG_Popu64(&rng, 0);
+value += RNG_Randomf32(&rng);
+RNG_SetRelativeu64(&rng, 1, 12345678);
+value += RNG_Randomf32(&rng);
+RNG_Popu64(&rng, 0);
+RNG_Popu64(&rng, 0);
+
+RNG_Destroy(&rng);
+
+```
 
 Dependencies
 ============
