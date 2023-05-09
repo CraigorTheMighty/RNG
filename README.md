@@ -1,3 +1,14 @@
+RNG
+===
+
+Small library for random number generation. Includes integer random number generation (essentially a glorified hash), and high-quality float/double generation that utilise all bit patterns between 0.0 and 1.0.
+
+Usage
+=====
+
+```RNG_New()``` creates a new RNG. The RNG returned will have a unique 256-bit seed. Seeds will only wrap when 2^256 RNGs have been created, which should be more than enough for most applications.
+```RNG_Destroy(rng_t *rng)``` destroys the RNG and all memory associated with it.
+
 Dependencies
 ============
 
