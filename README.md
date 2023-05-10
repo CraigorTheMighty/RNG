@@ -22,17 +22,34 @@ Destroys the RNG and all memory associated with it.
 
 Clone an existing RNG. The cloned RNG will have an exact copy of the internal state of the original RNG, and will output the same sequence of numbers as the original RNG given the same sequence of operations. Call ```RNG_IsValid(rng_t *rng)``` to determine whether the RNG is valid before using it.
 
-- ```RNG_SetMaxStackSize(rng_t *rng, uint32_t size)```
 
-Set the maximum stack size that the RNG can have. Returns zero on success, and non-zero on failure. In the case of failure, the RNG retains its original unmodified state. The default stack size is determined by ```RNG_DEFAULT_MAX_STATE_SIZE```, which is defined as 65536 bytes.
+- ```RNG_SetTotalMaxStackSize(rng_t *rng, uint32_t size)```
 
-- ```RNG_GetMaxStackSize(rng_t *rng)```
+Set the total size in bytes that the RNG can use for its internal state. Returns zero on success, and non-zero on failure. Failure only occurs when ```size``` is less than the current amount of memory allocated for the state. The default stack size is determined by ```RNG_DEFAULT_MAX_STATE_SIZE```, which is defined as 65536 bytes.
 
-Get the maximum stack size of an RNG.
+- ```RNG_SetUserMaxStackSize(rng_t *rng, uint32_t size)```
 
-- ```RNG_GetStackDepth(rng_t *rng)```
+Set the total size in bytes that the user data portion of the stack can grow to. ```size``` is silently modified internally to the closest power-of-two that is equal to or greater than ```size```. Returns zero on success, and non-zero on failure. Failure only occurs when ```size``` is less than the current amount of memory in the user data portion of the stack. The default user data size is determined by ```RNG_DEFAULT_MAX_STATE_SIZE```, which is defined as 65536 bytes.
 
-Return the size of the user portion of the RNG stack. This is defined as the maximum stack size, minus 32 bytes for the RNG seed, minus the length of the user-defined ID, if any. This value will always be >= 0.
+- ```RNG_GetTotalMaxStackSize(rng_t *rng)```
+
+Returns the maximum size in bytes that the RNG state can grow to.
+
+- ```RNG_GetUserMaxStackSize(rng_t *rng)```
+
+Returns the maximum size in bytes that the user portion of the RNG state can grow to. This will be, at most, the value set by ```RNG_SetUserMaxStackSize(rng_t *rng, uint32_t size)```, and depends on the size of the current user ID.
+
+- ```RNG_GetTotalStackDepth(rng_t *rng)```
+
+Returns the current number of bytes used by the RNG stack.
+
+- ```RNG_GetUserStackDepth(rng_t *rng)```
+
+Returns the current number of bytes used in the user portion of the RNG stack.
+
+- ```RNG_ShrinkStack(rng_t *rng)```
+
+Attempts to reduce memory usage by shrinking the RNG stack.
 
 - ```RNG_SetID(rng_t *rng, void *data, uint32_t data_len)```
 - ```RNG_SetIDString(rng_t *rng, char *string)```
