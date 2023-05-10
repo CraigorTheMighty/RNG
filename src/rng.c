@@ -629,6 +629,12 @@ float RNG_Randomf32(rng_t *rng)
 	cnt = (uint32_t)Math_LZCnt64(current);
 	pw2 = cnt;
 
+	/*
+	// testing purposes
+	current = (current >> 41) | 0x3f800000;
+	return *(float*)&current - 1.0f;
+	*/
+
 	if (cnt == RNG_HASH_BITS)
 	{
 		current = HASH_FUNCTION64(rng->state, rng->state_size, 1);
@@ -639,7 +645,7 @@ float RNG_Randomf32(rng_t *rng)
 	// if less than "FP32_MANTISSA_BITS" bits left, we need to generate a new hash to fill the mantissa
 	if (RNG_HASH_BITS - cnt - 1 < FP32_MANTISSA_BITS)
 	{
-		HASH_FUNCTION64(rng->state, rng->state_size, 2);
+		current = HASH_FUNCTION64(rng->state, rng->state_size, 2);
 	}
 
 	if (pw2 < (uint32_t)((1 << (FP32_EXPONENT_BITS - 1)) - 2))
