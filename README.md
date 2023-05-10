@@ -49,7 +49,7 @@ Returns the current number of bytes used in the user portion of the RNG stack.
 
 - ```RNG_ShrinkStack(rng_t *rng)```
 
-Attempts to reduce memory usage by shrinking the RNG stack.
+Attempts to reduce memory usage by shrinking the RNG stack. Returns zero on success, and non-zero on failure. In the case of failure, the RNG retains its original unmodified state.
 
 - ```RNG_SetID(rng_t *rng, void *data, uint32_t data_len)```
 - ```RNG_SetIDString(rng_t *rng, char *string)```
