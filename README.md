@@ -13,7 +13,7 @@ The only function that is guaranteed thread-safe is ```RNG_New()```.
 Performance
 ===========
 
-Tests performed on an AMD Ryzen 9 5900X with 64GB DDR4-1333 using maximum number of threads.
+Tests performed on an AMD Ryzen 9 5900X with 64GB DDR4-1333 using maximum number of threads. Results are in millions of random numbers generated per second.
 
 |State size|Randomu32|Randomu64|Randomf32|Randomf64|Randomf32 (single-threaded)|
 |---|---|---|---|---|---|
