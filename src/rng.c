@@ -10,8 +10,6 @@
 
 #define SPINLOCK_INIT	0
 
-#define RNG_PREFERRED_HASH_DATA_MULTIPLE_BYTES	8
-
 #define RNG_HASH_BITS_LOG2					6
 #define RNG_HASH_BITS						(1 << (RNG_HASH_BITS_LOG2))
 
@@ -31,6 +29,10 @@
 #define FP64_EXPONENT_BITS	11
 
 #define RNG_DEFAULT_MAX_STATE_SIZE		(1 << 16)
+
+#define RNG_EXPAND_BASE	1
+#define RNG_EXPAND_ID	2
+#define RNG_EXPAND_USER	3
 
 typedef volatile uint32_t spinlock_t;
 
@@ -158,20 +160,26 @@ static INLINE_DEF void RNG_IncrementCounter256(uint64_t *counter256)
 	}
 }
 
-static INLINE_DEF uint32_t RNG_GetMallocSize(uint32_t size)
-{
-	size = (size + RNG_PREFERRED_HASH_DATA_MULTIPLE_BYTES - 1) / RNG_PREFERRED_HASH_DATA_MULTIPLE_BYTES;
-	return size * RNG_PREFERRED_HASH_DATA_MULTIPLE_BYTES;
-}
-
-static INLINE_DEF int RNG_ExpandStateBuffer(rng_t *rng, uint32_t size)
+static INLINE_DEF int RNG_ExpandStateBuffer(rng_t *rng, uint32_t size, int type)
 {
 	uint32_t old_size = rng->state_size_allocated_bytes;
-	uint32_t new_size = RNG_GetMallocSize(size);
+	uint32_t new_size = size;
 	void *ptr;
+
+	if (type == RNG_EXPAND_USER)
+	{
+		uint32_t req_user_size = rng->state_size - rng->id_length - sizeof(uint64_t) * 4;
+		if (req_user_size + size < req_user_size)	// integer overflow
+			return -1;
+		req_user_size += size;
+		if (req_user_size > rng->user_state_required_size)
+			return -1;
+		new_size = req_user_size + rng->id_length + sizeof(uint64_t) * 4;
+	}
 
 	if (old_size >= new_size)
 		return 0;
+
 	if (old_size == 0)
 		old_size = 1;
 
@@ -206,29 +214,81 @@ int RNG_IsValid(rng_t *rng)
 	return (rng->state != 0 && rng->state_size >= sizeof(uint64_t)*4) ? 1 : 0;
 }
 
-int RNG_SetMaxStackSize(rng_t *rng, uint32_t size)
+int RNG_SetTotalMaxStackSize(rng_t *rng, uint32_t size)
 {
 	size = Math_CeilPow2u32(size);
-	
+
 	if (size == 0)
 		return -1;
-
-	if (size < rng->max_state_size)
+	if (size < rng->state_size_allocated_bytes)
 		return -1;
-	
+
 	rng->max_state_size = size;
 
 	return 0;
+}
+int RNG_SetUserMaxStackSize(rng_t *rng, uint32_t size)
+{
+	uint32_t current_offset = rng->state_size - rng->id_length - sizeof(uint64_t) * 4;
+	
+	size = Math_CeilPow2u32(size);
+
+	if (size == 0)
+		return -1;
+	if (size < current_offset)
+		return -1;
+
+	rng->user_state_required_size = size;
+
+	return 0;
+}
+int RNG_ShrinkStack(rng_t *rng)
+{
+	uint32_t old_size = rng->state_size_allocated_bytes;
+	uint32_t target_size = Math_CeilPow2u32(rng->state_size);
+	void *ptr;
+
+	if (target_size == rng->state_size_allocated_bytes)
+		return 0;
+
+	while ((old_size >> 1) >= target_size)
+		old_size >>= 1;
+
+	if (old_size == rng->state_size_allocated_bytes)
+		return 0;
+
+	ptr = REALLOC_FUNC(rng->state, old_size);
+
+	if (!ptr)
+		return -1;
+
+	rng->state = ptr;
+	rng->state_size_allocated_bytes = old_size;
+
+	return 0;
+}
+uint32_t RNG_GetTotalMaxStackSize(rng_t *rng)
+{
+	return rng->max_state_size;
+}
+uint32_t RNG_GetUserMaxStackSize(rng_t *rng)
+{
+	uint32_t overhead = rng->id_length + sizeof(uint64_t) * 4;
+
+	if (rng->max_state_size - overhead < rng->user_state_required_size)
+		return rng->max_state_size - overhead;
+	else
+		return rng->user_state_required_size;
 }
 rng_t RNG_New()
 {
 	rng_t rng = {0};
 
 	rng.state_size = (uint32_t)sizeof(uint64_t) * 4;
-	rng.id_length = 0;
 	rng.max_state_size = RNG_DEFAULT_MAX_STATE_SIZE;
+	rng.user_state_required_size = RNG_DEFAULT_MAX_STATE_SIZE;
 
-	if (RNG_ExpandStateBuffer(&rng, (uint32_t)sizeof(uint64_t) * 4))
+	if (RNG_ExpandStateBuffer(&rng, (uint32_t)sizeof(uint64_t) * 4, RNG_EXPAND_BASE))
 	{
 		FREE_FUNC(rng.state);
 		memset(&rng, 0, (uint32_t)sizeof(rng_t));
@@ -249,7 +309,7 @@ rng_t RNG_Clone(rng_t *old_rng)
 	rng.state = 0;
 	rng.state_size_allocated_bytes = 0;
 
-	if (RNG_ExpandStateBuffer(&rng, old_rng->state_size_allocated_bytes))
+	if (RNG_ExpandStateBuffer(&rng, old_rng->state_size_allocated_bytes, RNG_EXPAND_BASE))
 	{
 		FREE_FUNC(rng.state);
 		memset(&rng, 0, (uint32_t)sizeof(rng_t));
@@ -269,7 +329,7 @@ int RNG_SetID(rng_t *rng, void *data, uint32_t data_len)
 	uint8_t *old_userdata_p;
 	uint8_t *new_userdata_p;
 
-	if (RNG_ExpandStateBuffer(rng, req_size))
+	if (RNG_ExpandStateBuffer(rng, req_size, RNG_EXPAND_ID))
 		return -1; // valid RNG but without ID updated
 
 	old_userdata_p = &rng->state[(uint32_t)sizeof(uint64_t) * 4 + rng->id_length];
@@ -342,7 +402,11 @@ int RNG_SetRelative(rng_t *rng, uint32_t offset, void *data, uint32_t size)
 	return 0;
 }
 
-uint32_t RNG_GetStackDepth(rng_t *rng)
+uint32_t RNG_GetTotalStackDepth(rng_t *rng)
+{
+	return rng->state_size;
+}
+uint32_t RNG_GetUserStackDepth(rng_t *rng)
 {
 	return rng->state_size - rng->id_length - sizeof(uint64_t) * 4;
 }
@@ -427,9 +491,7 @@ int RNG_GetRelativei8(rng_t *rng, int32_t offset, int8_t *x)
 }
 int RNG_Push(rng_t *rng, void *data, uint32_t size)
 {
-	if (RNG_GetMallocSize(rng->state_size + size) < rng->state_size)	// uint32_t overflow, silently ignore
-		return -1;
-	if (RNG_ExpandStateBuffer(rng, rng->state_size + size))
+	if (RNG_ExpandStateBuffer(rng, size, RNG_EXPAND_USER))
 		return -1; // valid RNG but without value pushed
 
 	if (data)

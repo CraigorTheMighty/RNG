@@ -9,6 +9,7 @@ typedef struct rng_s
 	uint32_t	state_size;					// sizeof(uint64_t) * 4 + id_length + USER_DATA = state_size
 	uint32_t	state_size_allocated_bytes;	// how many bytes have been allocated for *state
 	uint32_t	max_state_size;				// how many bytes are allowed for *state
+	uint32_t	user_state_required_size;	// how many bytes must be allocated for the user portion of the stack
 	uint32_t	id_length;
 	uint32_t	id_type;
 }rng_t;
@@ -18,9 +19,15 @@ rng_t RNG_Clone(rng_t *old_rng);
 void RNG_Destroy(rng_t *rng);
 int RNG_IsValid(rng_t *rng);
 
-int RNG_SetMaxStackSize(rng_t *rng, uint32_t size);
+int RNG_SetTotalMaxStackSize(rng_t *rng, uint32_t size);
+int RNG_SetUserMaxStackSize(rng_t *rng, uint32_t size);
+uint32_t RNG_GetTotalMaxStackSize(rng_t *rng);
+uint32_t RNG_GetUserMaxStackSize(rng_t *rng);
 
-uint32_t RNG_GetStackDepth(rng_t *rng);
+uint32_t RNG_GetTotalStackDepth(rng_t *rng);
+uint32_t RNG_GetUserStackDepth(rng_t *rng);
+
+int RNG_ShrinkStack(rng_t *rng);
 
 uint32_t RNG_GetIDLength(rng_t *rng);
 
