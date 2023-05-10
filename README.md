@@ -1,7 +1,14 @@
 RNG
 ===
 
-Small library for random number generation. Includes integer random number generation (essentially a glorified hash), and high-quality float/double generation that utilise all bit patterns between 0.0 and 1.0.
+Small library for pseudo-random number generation. Includes integer random number generation (essentially a glorified hash function), and high-quality float/double generation that utilise all bit patterns between 0.0 and 1.0.
+
+Thread safety
+=============
+
+The majority of functions in this API are ***NOT*** thread-safe, by design. One ```rng_t``` variable should generally not be shared between multiple threads.
+
+The only function that is guaranteed thread-safe is ```RNG_New()```.
 
 API
 ===
@@ -82,7 +89,7 @@ Reset the user area of the RNG stack: silently pop the stack until no user data 
 - ```RNG_Push(rng_t *rng, void *data, uint32_t size)```
 - ```RNG_Push<type>(rng_t *rng, <type> x)```
 
-Push generic data or sized-integer values onto the RNG stack. Returns zero on success, and non-zero on failure. In the case of failure, the RNG retains its original unmodified state. If ```data``` is NULL, this has the effect of allocating space on the stack for ```size``` bytes, but without initialising the extra space.
+Push generic data or sized-integer values onto the RNG stack. Returns zero on success, and non-zero on failure. In the case of failure, the RNG retains its original unmodified state. If ```data``` is NULL, this has the effect of allocating space on the stack for ```size``` bytes, but without initialising the extra space. This call can result in memory allocation.
 
 - ```RNG_Pop(rng_t *rng, void *data, uint32_t size)```
 - ```RNG_Pop<type>(rng_t *rng, <type> *x)```
@@ -92,7 +99,7 @@ Pop generic data or sized-integer values from the RNG stack. Returns zero on suc
 - ```RNG_SetRelative(rng_t *rng, uint32_t offset, void *data, uint32_t size)```
 - ```RNG_SetRelative<type>(rng_t *rng, uint32_t offset, <type> x)```
 
-Set the user area of the stack relative to an offset from the top of the stack. For sized-integer types of the function, ```offset``` represents a byte-offset equal to ```offset * sizeof(<type>)```, otherwise it represents a byte-offset from the top of the stack. The size in bytes of the user area can be queried with ```RNG_GetStackDepth(rng_t *rng)```. ```data``` must be a valid address of size ```size```. Returns zero on success, and non-zero on failure. In the case of failure, the RNG retains its original unmodified state.
+Set the user area of the stack relative to an offset from the top of the stack. For sized-integer types of the function, ```offset``` represents a byte-offset equal to ```offset * sizeof(<type>)```, otherwise it represents a byte-offset from the top of the stack. The size in bytes of the user area can be queried with ```RNG_GetStackDepth(rng_t *rng)```. ```data``` must be a valid address of size ```size```. Returns zero on success, and non-zero on failure. In the case of failure, the RNG retains its original unmodified state. These functions are guaranteed to be equal to or faster than ```RNG_Push```, and should be used instead of ```RNG_Push``` where possible.
 
 - ```RNG_GetRelative(rng_t *rng, uint32_t offset, void *data, uint32_t size)```
 - ```RNG_GetRelativeu<type>(rng_t *rng, uint32_t offset, <type> *x)```
@@ -109,6 +116,8 @@ Returns a random float in the half-open range [0.0, 1.0).
 
 Usage example
 =============
+
+Note that this is example code only, you would generally never want to create an RNG, call it a handful of times, and destroy it immediately afterwards.
 
 ```
 	rng_t rng = RNG_New();
@@ -135,6 +144,8 @@ Usage example
 	RNG_Popu64(&rng, 0);
 		
 	RNG_Destroy(&rng);
+	
+	return value;
 
 ```
 
