@@ -13,19 +13,22 @@ The only function that is guaranteed thread-safe is ```RNG_New()```.
 Performance
 ===========
 
-Tests performed on an AMD Ryzen 9 5900X with 64GB DDR4-1333 using maximum number of threads. Results are in millions of random numbers generated per second.
+Tests performed on an AMD Ryzen 9 5900X with 64GB DDR4-1333 using maximum number of threads (12 cores, 24 threads), with a unique RNG per thread. Results are in millions of random numbers generated per second.
 
-|State size|Randomu32|Randomu64|Randomf32|Randomf64|Randomf32 (single-threaded)|
+Code:
+```
+
+|State size bytes|Randomf32 (single-threaded)|Randomf32|Randomf64|Randomu32|Randomu64|
 |---|---|---|---|---|---|
-|32|2618 M/s|2704 M/s|2488 M/s|2428 M/s|105 M/s|
-|64|1352 M/s|1391 M/s|1233 M/s|1193 M/s|91 M/s|
-|128|1121 M/s|1136 M/s|1045 M/s|1100 M/s|78 M/s|
-|256|690 M/s|676 M/s|703 M/s|650 M/s|38 M/s|
-|512|719 M/s|710 M/s|688 M/s|674 M/s|35 M/s|
-|1024|593 M/s|558 M/s|552 M/s|567 M/s|28 M/s|
-|4096|252 M/s|253 M/s|256 M/s|252 M/s|13 M/s|
-|16384|72 M/s|71 M/s|72 M/s|69 M/s|4 M/s|
-|65536|19 M/s|19 M/s|19 M/s|19 M/s|1 M/s|
+|32|104.5 M/s|1358.6 M/s|1344.5 M/s|1396.4 M/s|1218.5 M/s|
+|64|91.4 M/s|514.5 M/s|509.9 M/s|528.2 M/s|584.1 M/s|
+|128|79.9 M/s|457.6 M/s|481.1 M/s|488.6 M/s|458.7 M/s|
+|256|38.6 M/s|225.7 M/s|245.6 M/s|226.3 M/s|242.4 M/s|
+|512|34.3 M/s|267.6 M/s|264.3 M/s|253.0 M/s|289.8 M/s|
+|1024|28.2 M/s|237.0 M/s|213.9 M/s|212.1 M/s|227.6 M/s|
+|4096|13.6 M/s|119.4 M/s|111.0 M/s|116.8 M/s|115.8 M/s|
+|16384|4.3 M/s|39.1 M/s|38.3 M/s|38.7 M/s|38.8 M/s|
+|65536|1.2 M/s|10.5 M/s|10.3 M/s|9.8 M/s|10.4 M/s|
 
 API
 ===
