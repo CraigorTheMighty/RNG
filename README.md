@@ -17,6 +17,16 @@ Tests performed on an AMD Ryzen 9 5900X with 64GB DDR4-1333 using maximum number
 
 Code:
 ```
+#pragma omp parallel for private(i) shared(data) shared(rng)
+    for (i = 0; i < ops; i++)
+    {
+        for (int j = 0; j < 8; j++)
+        {
+            RNG_SetRelativeu64(&rng[omp_get_thread_num()], 1, RNG_Randomu64(&rng[omp_get_thread_num()]));
+            ((float*)data)[i] += RNG_Randomf32(&rng[omp_get_thread_num()]);
+        }
+    }
+```
 
 |State size bytes|Randomf32 (single-threaded)|Randomf32|Randomf64|Randomu32|Randomu64|
 |---|---|---|---|---|---|
