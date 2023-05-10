@@ -23,6 +23,9 @@ Tests performed on an AMD Ryzen 9 5900X with 64GB DDR4-1333 using maximum number
 |256|690 M/s|676 M/s|703 M/s|650 M/s|38 M/s|
 |512|719 M/s|710 M/s|688 M/s|674 M/s|35 M/s|
 |1024|593 M/s|558 M/s|552 M/s|567 M/s|28 M/s|
+|4096|252 M/s|253 M/s|256 M/s|252 M/s|13 M/s|
+|16384|72 M/s|71 M/s|72 M/s|69 M/s|4 M/s|
+|65536|19 M/s|19 M/s|19 M/s|19 M/s|1 M/s|
 
 API
 ===
