@@ -25,7 +25,7 @@ Clone an existing RNG. The cloned RNG will have an exact copy of the internal st
 
 - ```RNG_SetTotalMaxStackSize(rng_t *rng, uint32_t size)```
 
-Set the total size in bytes that the RNG can use for its internal state. Returns zero on success, and non-zero on failure. Failure only occurs when ```size``` is less than the current amount of memory allocated for the state. The default stack size is determined by ```RNG_DEFAULT_MAX_STATE_SIZE```, which is defined as 65536 bytes.
+Set the total size in bytes that the RNG can use for its internal state. ```size``` is silently modified internally to the closest power-of-two that is equal to or greater than ```size```. Returns zero on success, and non-zero on failure. Failure only occurs when ```size``` is less than the current amount of memory allocated for the state. The default stack size is determined by ```RNG_DEFAULT_MAX_STATE_SIZE```, which is defined as 65536 bytes.
 
 - ```RNG_SetUserMaxStackSize(rng_t *rng, uint32_t size)```
 
@@ -111,30 +111,30 @@ Usage example
 =============
 
 ```
-rng_t rng = RNG_New();
-int retval = RNG_IsValid(&rng);
-float value;
-if (retval == 0)
-    return -1.0f;
-retval = RNG_SetIDString(&rng, "TestRNGID");
-if (retval)
-    return -1.0f;
-retval = RNG_SetMaxStackSize(&rng, 64);
-if (retval)
-    return -1.0f;
+	rng_t rng = RNG_New();
+	int retval = RNG_IsValid(&rng);
+	float value;
+	if (retval == 0)
+		return -1.0f;
+	retval = RNG_SetIDString(&rng, "TestRNGID");
+	if (retval)
+		return -1.0f;
+	retval = RNG_SetUserMaxStackSize(&rng, 64);
+	if (retval)
+		return -1.0f;
 
-RNG_Pushu64(&rng, 12345); // ignore return value
-RNG_Pushu64(&rng, 123456); // ignore return value
-RNG_Pushu64(&rng, 1234567); // ignore return value
-value = RNG_Randomf32(&rng);
-RNG_Popu64(&rng, 0);
-value += RNG_Randomf32(&rng);
-RNG_SetRelativeu64(&rng, 1, 12345678);
-value += RNG_Randomf32(&rng);
-RNG_Popu64(&rng, 0);
-RNG_Popu64(&rng, 0);
-
-RNG_Destroy(&rng);
+	RNG_Pushu64(&rng, 12345); // ignore return value
+	RNG_Pushu64(&rng, 123456); // ignore return value
+	RNG_Pushu64(&rng, 1234567); // ignore return value
+	value = RNG_Randomf32(&rng);
+	RNG_Popu64(&rng, 0);
+	value += RNG_Randomf32(&rng);
+	RNG_SetRelativeu64(&rng, 1, 12345678);
+	value += RNG_Randomf32(&rng);
+	RNG_Popu64(&rng, 0);
+	RNG_Popu64(&rng, 0);
+		
+	RNG_Destroy(&rng);
 
 ```
 
