@@ -10,6 +10,20 @@ The majority of functions in this API are ***NOT*** thread-safe, by design. One 
 
 The only function that is guaranteed thread-safe is ```RNG_New()```.
 
+Performance
+===========
+
+Tests performed on an AMD Ryzen 9 5900X with 64GB DDR4-1333 using maximum number of threads.
+
+|State size|Randomu32|Randomu64|Randomf32|Randomf64|Randomf32 (single-threaded)|
+|---|---|---|---|---|---|
+|32|2618 M/s|2704 M/s|2488 M/s|2428 M/s|105 M/s|
+|64|1352 M/s|1391 M/s|1233 M/s|1193 M/s|91 M/s|
+|128|1121 M/s|1136 M/s|1045 M/s|1100 M/s|78 M/s|
+|256|690 M/s|676 M/s|703 M/s|650 M/s|38 M/s|
+|512|719 M/s|710 M/s|688 M/s|674 M/s|35 M/s|
+|1024|593 M/s|558 M/s|552 M/s|567 M/s|28 M/s|
+
 API
 ===
 
